@@ -1,6 +1,5 @@
 function! jumpthere#Jump(dir)
-    let l:dir = jumpthere#Resolve(a:dir)
-    execute 'lcd ' . l:dir
+    execute 'lcd ' . jumpthere#Resolve(a:dir)
     echo getcwd()
 endfunction
 
@@ -59,7 +58,7 @@ endfunction
 
 function! jumpthere#Explore()
     if exists(':Explore')
-        Explore .
+        Explore
     endif
 endfunction
 
@@ -139,9 +138,9 @@ function! s:ExpandRelativePath(path)
     if a:path == ''
         return getcwd()
     elseif s:StartsWith(a:path, '/')
-        return getcwd() . '/' . a:path
-    else
         return a:path
+    else
+        return getcwd() . '/' . a:path
     endif
 endfunction
 
@@ -153,14 +152,14 @@ function! s:IsBufferBlank()
     return line('$') == 1 && getline(1) == ''
 endfunction
 
-function! s:CallIfExists(fn_name, ...)
+function! s:CallIfExists(fn_name)
     if exists(a:fn_name)
         execute 'call ' . a:fn_name . '()'
     endif
 endfunction
 
 function! s:StartsWith(str, prefix)
-    return stridx(a:str, a:prefix) != 0
+    return stridx(a:str, a:prefix) == 0
 endfunction
 
 function! s:Strip(string)
