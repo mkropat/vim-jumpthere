@@ -2,8 +2,7 @@ let g:jumpthere_loaded = 1
 
 let g:JumpThere_OnNewWindow = function('jumpthere#Explore')
 
-call system('autojump')
-if v:shell_error == 0
+if executable('autojump')
     let g:JumpThere_ResolvePathHandler = function('jumpthere#Autojump')
 endif
 
