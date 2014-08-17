@@ -10,7 +10,7 @@ describe 'jumpthere#Tab function'
         execute 'cd ' . s:cwd
     end
 
-    it 'expects one argument'
+    it 'expects at least one argument'
         Expect expr { jumpthere#Tab() } to_throw '^Vim.*:E119'
     end
 
@@ -120,7 +120,38 @@ describe 'jumpthere#Tab function'
         call jumpthere#Tab('t')
         Expect g:on_new_window_mock_called == 1
     end
+
+    it 'accepts the name of an OnNewWindow callback as a second argument'
+        call jumpthere#Tab('t', 'g:PerProjectOnNewWindowMock')
+    end
+
+    it 'calls the second argument instead of g:JumpThere_OnNewWindow when the buffer is new'
+        let g:per_project_on_new_window_mock_called = 0
+        let g:on_new_window_mock_called = 0
+
+        call jumpthere#Tab('t', 'g:PerProjectOnNewWindowMock')
+
+        Expect g:per_project_on_new_window_mock_called == 1
+        Expect g:on_new_window_mock_called == 0
+    end
+
+    it 'calls the passed OnNewWindowFn with the passed arguments'
+        let g:per_project_on_new_window_mock_called = 0
+        let g:per_project_on_new_window_mock_args = []
+        let g:on_new_window_mock_called = 0
+
+        call jumpthere#Tab('t', 'g:PerProjectOnNewWindowMock', 'somearg', 'anotherarg')
+
+        Expect g:per_project_on_new_window_mock_called == 1
+        Expect g:per_project_on_new_window_mock_args == ['somearg', 'anotherarg']
+        Expect g:on_new_window_mock_called == 0
+    end
 end
+
+function! g:PerProjectOnNewWindowMock(...)
+    let g:per_project_on_new_window_mock_called = 1
+    let g:per_project_on_new_window_mock_args = a:000
+endfunction
 
 function! g:on_new_window_mock()
     let g:on_new_window_mock_called = 1

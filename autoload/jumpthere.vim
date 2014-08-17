@@ -23,9 +23,10 @@ function! jumpthere#VSplit(dir)
     call s:GenericSplit(function('s:VSplit'), a:dir)
 endfunction
 
-function! jumpthere#Tab(dir)
+function! jumpthere#Tab(dir, ...)
     try
-        call s:Tab(jumpthere#Resolve(a:dir))
+        let l:callback = s:getCallbackFromArgs(a:000, 'g:JumpThere_OnNewWindow')
+        call s:Tab(jumpthere#Resolve(a:dir), l:callback[0], l:callback[1:])
     catch /^jumpthere:DirNotFound$/
         echoerr 'No such path'
     endtry
@@ -62,18 +63,31 @@ function! jumpthere#Explore()
     endif
 endfunction
 
-function! s:Tab(resolved_dir)
+function! s:getCallbackFromArgs(args, ...)
+    if len(a:args)
+        return [function(a:args[0])] + a:args[1:]
+    elseif len(a:000) && exists(a:1)
+        return [eval(a:1)] + a:000[1:]
+    else
+        return [function('s:Nop')]
+    endif
+endfunction
+
+function! s:Nop()
+endfunction
+
+function! s:Tab(resolved_dir, OnNewWindowFn, onNewWindowArgs)
     try
         call s:GotoTabWindow(function('s:CwdEquals'), a:resolved_dir)
         if s:IsBufferNew()
-            call s:CallIfExists('g:JumpThere_OnNewWindow')
+            call call(a:OnNewWindowFn, a:onNewWindowArgs)
         endif
     catch /^jumpthere:WindowNotFound$/
         if s:IsBufferNew() == 0 || winnr('$') > 1
             tabnew
         end
         execute 'lcd ' . a:resolved_dir
-        call s:CallIfExists('g:JumpThere_OnNewWindow')
+        call call(a:OnNewWindowFn, a:onNewWindowArgs)
     endtry
 endfunction
 
